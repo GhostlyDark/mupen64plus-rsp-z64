@@ -155,7 +155,9 @@ extern "C" {
         //#define AUDIO_HLE_ALLOWED
 
 #if defined (AUDIO_HLE_ALLOWED) || defined (VIDEO_HLE_ALLOWED)
-        unsigned int TaskType = *(unsigned int *)(z64_rspinfo.DMEM + 0xFC0);
+        uint32_t TaskType = *(uint32_t*)(z64_rspinfo.DMEM + 0xFC0);
+        bool compareTaskType = *(uint32_t*)(z64_rspinfo.DMEM + 0x0ff0) != 0;
+
 #endif
 
 #ifdef VIDEO_HLE_ALLOWED
@@ -177,7 +179,7 @@ extern "C" {
         }
 #endif
 
-        if (TaskType == 1) {
+        if (TaskType == 1 && compareTaskType) {
             if (z64_rspinfo.ProcessDlistList != NULL) {
                 z64_rspinfo.ProcessDlistList();
             }
@@ -186,14 +188,12 @@ extern "C" {
                 *z64_rspinfo.MI_INTR_REG |= R4300i_SP_Intr;
                 z64_rspinfo.CheckInterrupts();
             }
-
-            *z64_rspinfo.DPC_STATUS_REG &= ~0x0002;
             return Cycles;
         }
 #endif
 
 #ifdef AUDIO_HLE_ALLOWED
-        if (TaskType == 2) {
+        if (TaskType == 2 && compareTaskType) {
             if (z64_rspinfo.ProcessAlistList != NULL) {
                 z64_rspinfo.ProcessAlistList();
             }
